@@ -1,5 +1,5 @@
 # P-Hacking
-Comparing performance of binary classification models
+### Comparing performance of binary classification models
 
 For formal evaluation of the relative performance a set of classifiers, the null hypothesis is “the results from the models do not differ significantly”. The level of signiﬁcance is known as the p-value: the smaller the p-value, the stronger the evidence against the null hypothesis. The threshold significance level (usually called ‘alpha’) for a single statistical hypothesis test represents the probability of a Type I error: rejecting the null hypothesis when it is actually true. 
 
@@ -19,45 +19,9 @@ Cochran’s Q as the omnibus test, and the McNemar test with correction for mult
 * Comparing multiple classifiers trained on _multiple datasets_:<br> 
 Friedman ranking test is used as the omnibus test, with the Nemenyi test as the post hoc procedure for all-to-all comparisons, or one of the general methods for one-to-all (control group) comparisons. 
 
-#### Corrections for multiple hypothesis testing
-
-The test functions return a Dataframe with adjusted p_values from various methods. A brief summary of their calculation:
-
-> H0    : null hypothesis, difference between the two is not significant<br>
-  `p`     = p_value for each pair being compared, from the normal distribution except Nemenyi (t-dist)<br>
-  : unadjusted p_values are sorted such that p(0)<p(1)<br>
-  `k`     = number of unadjusted p-values<br>
-  `p(i)` = value at position (i) in the sorted list<br>
-  `ap(i)` = value p(i) adjusted for multiple tests<br>
-
-* In one-step adjustment methods p-values are compared to a
-  predetermined value that is a function of alpha, the significance
-  level, and k, the number of p-values.
-  - Bonferroni-Dunn: `ap(i) = p(i)*k`
-  - Sidak: `           ap(i) = 1-(1-p(i))^k`
-  - Nemenyi: `        ap(i) = (p(i)*k*(k-1))/2`
-
-* In step-down methods p-values are examined in order, from smallest
-  to largest. Once a p-value is found that is large according to a
-  criterion based on alpha and the p-value's position in the list, 
-  H0 for that p-value and all larger p-values is accepted.
-  - Holm: `   ap(i) = p(i)*(k-i+1)`
-  - Finner: `  ap(i) = 1-(1-p(i))^(k/i)`
-  - Schaffer: `ap(i) = p(i)*t(i)`<br>
-         where t(i) is the maximum number of hypotheses 
-         which can be true given that any (i−1) hypotheses 
-         are false; determined by a recursive function.
-
-* In step-up methods p-values are examined in order, from largest to
-  smallest. Once a p-value is found that is small according to a
-  criterion based on alpha and the p-value's position in the list,
-  H0 for that p-value and all smaller p-values is rejected.
-  - Hochberg: `ap(i) = p(i)*(k-i+1)`
-  - Li: `        ap(i) = p(i)/(p(i)+1-p(k))`
-
 #### Callable functions
 
-* `run_friedman(indf, alpha=0.05)`<br>Wrapper for friedman_test() from the stac library<br>https://tec.citius.usc.es/stac/doc/
+* `run_friedman(indf, alpha=0.05)`<br>Wrapper for friedman_test() forked from the stac library: https://tec.citius.usc.es/stac/doc/
   - Parameters
     - `indf` : pd.Dataframe with the sample measurements for each group
     - `alpha` : float, significance threshold 
@@ -115,5 +79,42 @@ The test functions return a Dataframe with adjusted p_values from various method
 * mlxtend.evaluate
 * sklearn.preprocessing
 
-### Examples
+#### Examples
 Jupyter notebooks in the `Demo` folder
+
+#### Corrections for multiple hypothesis testing
+The test functions return a Dataframe with adjusted p_values from various methods. A brief summary of their calculation:
+
+> H0    : null hypothesis, difference between the two is not significant<br>
+  `p`     = p_value for each pair being compared, from the normal distribution except Nemenyi (t-dist)<br>
+  : unadjusted p_values are sorted such that p(0)<p(1)<br>
+  `k`     = number of unadjusted p-values<br>
+  `p(i)` = value at position (i) in the sorted list<br>
+  `ap(i)` = value p(i) adjusted for multiple tests<br>
+
+* In one-step adjustment methods p-values are compared to a
+  predetermined value that is a function of the significance
+  level (alpha), and the number of p-values (k).
+  - Bonferroni-Dunn: `ap(i) = p(i)*k`
+  - Sidak: `           ap(i) = 1-(1-p(i))^k`
+  - Nemenyi: `        ap(i) = (p(i)*k*(k-1))/2`
+
+* In step-down methods p-values are examined in order, from smallest
+  to largest. Once a p-value is found that is large according to a
+  criterion based on alpha and the position in the list, 
+  H0 for that p-value and all larger p-values is accepted.
+  - Holm: `   ap(i) = p(i)*(k-i+1)`
+  - Finner: `  ap(i) = 1-(1-p(i))^(k/i)`  
+  - Schaffer: `ap(i) = p(i)*t(i)`<br>
+         where t(i) is the maximum number of hypotheses 
+         which can be true given that any (i−1) hypotheses 
+         are false; determined by a recursive function.
+
+* In step-up methods p-values are examined in order, from largest to
+  smallest. Once a p-value is found that is small according to a
+  criterion based on alpha and the position in the list,
+  H0 for that p-value and all smaller p-values is rejected.
+  - Hochberg: `ap(i) = p(i)*(k-i+1)`
+  - Li: `        ap(i) = p(i)/(p(i)+1-p(k))`
+ 
+  - 
