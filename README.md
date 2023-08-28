@@ -116,5 +116,7 @@ The test functions return a Dataframe with adjusted p_values from various method
   H0 for that p-value and all smaller p-values is rejected.
   - Hochberg: `ap(i) = p(i)*(k-i+1)`
   - Li: `        ap(i) = p(i)/(p(i)+1-p(k))`
+
+ #### References
+ coming soon ...
  
-  - 
