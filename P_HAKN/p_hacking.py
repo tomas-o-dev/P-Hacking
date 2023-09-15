@@ -36,6 +36,8 @@ from sklearn.preprocessing import LabelEncoder
 #    Accept or Reject H0 
 # rankdic : dict
 #    dict of 'pivotal quantities' for the post-hoc tests
+# avg_ranks : dict
+#    dict of average ranks for analysis after the post-hoc tests
 
 
 ## ph_pvals(ranks,control=None,nmyi=False,shaf=False):
@@ -106,7 +108,7 @@ from sklearn.preprocessing import LabelEncoder
 # -- ph_pvals default --
 
 
-# ap2h0(indf, alpha=0.05):
+# filtr_ap2h0(indf, alpha=0.05):
 #    Converts dataframe returned by ph_pvals() or cq_mph()
 #    from adjusted p_values to T/F for null hypothesis
 #
@@ -120,6 +122,68 @@ from sklearn.preprocessing import LabelEncoder
 # Returns
 # -------
 # pd.Dataframe with T/F for null hypothesis
+
+
+# filtr_psig(indf, alpha=0.05):
+#    Reduces dataframe returned by ph_pvals() or cq_mph()
+#    to have only p_noadj < alpha
+#
+# Parameters
+# ----------
+# indf : pd.Dataframe
+#    Dataframe returned by ph_pvals() or cq_mph()
+# alpha : float, default = 0.05
+#    Significance threshold
+#
+# Returns
+# -------
+# pd.Dataframe with selected rows
+
+
+# compare_avgranks(indf, avg_ranks, alpha=0.05):
+# takes indf from mkdf plus avg_ranks from freidman test
+#
+# Parameters
+# ----------
+# indf : pd.Dataframe
+#    Dataframe returned by ph_pvals() or cq_mph()
+# avg_ranks : dict
+#    dict returned by run_freidman()
+# alpha : float, default = 0.05
+#    Significance threshold
+#
+# Returns
+# -------
+# list sorted by first field
+
+
+# compare_avgranks_lf(cmp):
+# resort list from compare_avgranks()
+#
+# Parameters
+# ----------
+# cmp : list
+#    list returned by compare_avgranks()
+#
+# Returns
+# -------
+# list sorted by last field
+
+
+# sort_dict_byval(indd, rev=False):
+# sort dict by value (dict comprehension)
+#
+# Parameters
+# ----------
+# indd : dict
+#    intended for string/scalar values ...
+# rev : Boolean, default = False
+#    true: higest to lowest
+#
+# Returns
+# -------
+# dict
+
 
 ####
 
@@ -161,6 +225,9 @@ def run_friedman(indf, alpha=0.05):
 # post-hocs require a dict of 'pivotal values' from the Friedman test 
     rankdic = {key: piv[i] for i, key in enumerate(list(indf.columns))} 
 
+# analysis can use the dict of average ranks from the Friedman test 
+    avg_ranks = {key: ranks[i] for i, key in enumerate(list(indf.columns))} 
+
     sig = p <= alpha
     rptstr = "Freidman Test\n"
     rptstr += "H0: there is no difference in the means at the "
@@ -171,7 +238,7 @@ def run_friedman(indf, alpha=0.05):
     else:
         rptstr += "Accept: No need for post-hoc tests"
 
-    return sig, rptstr, rankdic
+    return sig, rptstr, rankdic, avg_ranks
 
 
 # Post-hoc tests use a dict of 'pivotal quantities' from Freidman test
@@ -184,7 +251,7 @@ def run_friedman(indf, alpha=0.05):
 def ph_pvals(ranks,control=None,nmyi=False,shaf=False):
 
     if control is not None and nmyi:
-        print("Exception: Nemenyi_test is not appropriate for one.vs.all")
+        print("Exception: Nemenyi_test is only appropriate for all.vs.all")
         ret_df = pd.DataFrame({"nym_t": 1, 
                                "rejH0": False},
                               index=['Error'])
@@ -203,38 +270,37 @@ def ph_pvals(ranks,control=None,nmyi=False,shaf=False):
         versus = list(it.combinations(range(k), 2))
         comparisons = [keys[vs[0]] + " // " + keys[vs[1]] for vs in versus]
         z_values = [abs(values[vs[0]] - values[vs[1]]) for vs in versus]
-
-# nemenyi_test
-#   t-values are compared with the significance level: 
-#            AGREES WITH CD METHOD 
-#   psturng() return values are 'array-like' 
-#             {strange: some float, some [float]}
-    if nmyi: 
-        t_values = [psturng((z_values[z] * np.sqrt(2.)), k, np.inf) for z in range(len(z_values))]
-        # normalise
-        for p in range(len(t_values)):
-            if isinstance(t_values[p], np.ndarray):
-                t_values[p] = t_values[p][0]
-# all others
+ 
     p_values = [2*(1-st.norm.cdf(abs(z))) for z in z_values]
 
-# Sort values by p_value so that p_0 < p_1, and make_df
-    if nmyi:
-        p_values, t_values, comparisons = map(list, zip(*sorted(zip(p_values, t_values, comparisons), key=lambda t: t[0])))
-        nndf = mkdf(comparisons, p_values, nymt=t_values)
-        return nndf
+# Sort by p_value so that p_0 < p_1, and make_df
+    p_values, z_values, comparisons = map(list, zip(*sorted(zip(p_values, z_values, comparisons), key=lambda t: t[0])))
 
-    p_values, comparisons = map(list, zip(*sorted(zip(p_values, comparisons), key=lambda t: t[0])))
-    return mkdf(comparisons, p_values, tj=shaf)
+    if nmyi:
+        return mkdf(comparisons, p_values, nymt=z_values)
+    else:
+        return mkdf(comparisons, p_values, tj=shaf)
 
 
 # make dataframes to return from post-hocs
 def mkdf(avsb, p_vals, nymt=None, tj=False):
 
+# k=len(ranks)
+# split back to list from rankings
+    qq=[]
+    for e in range(len(avsb)):
+        tmp=avsb[e].split()
+        qq.append(tmp[0])
+        qq.append(tmp[2])
+    ranks = list(set(qq))
+    k=len(ranks)
+
 # properly, m = int(k*(k-1)/2.) where k=len(ranks) == len(p_values)
 #           len(p_vals) also works for control group tests (k-1)
 
     n = len(p_vals)
+
+    print("Classifiers:",k,"   Tests:",n)
 
     bdun_adj = [min((n)*p_value, 1) 
                 for p_value in p_vals]
@@ -257,10 +323,21 @@ def mkdf(avsb, p_vals, nymt=None, tj=False):
     li_adjpv = [p_vals[i]/(p_vals[i]+1-p_vals[-1]) 
                 for i in range(n)]
 
-## -- nemenyi -- ## 
+## -- nemenyi_test -- ## 
+#   t-values are compared with the significance level: 
+#            AGREES WITH CD METHOD 
+#   psturng() return values are 'array-like' 
+#             {strange: some float, some [float]}
+
     if nymt is not None:
+        t_values = [psturng((nymt[z] * np.sqrt(2.)), k, np.inf) for z in range(len(nymt))]
+# normalise
+        for p in range(len(t_values)):
+            if isinstance(t_values[p], np.ndarray):
+                t_values[p] = t_values[p][0]
+
         ret_df = pd.DataFrame({"p_noadj": p_vals,
-                               "ap_Nymi": nymt, 
+                               "ap_Nymi": t_values, 
                                "ap_BDun": bdun_adj,
                                "ap_Sdak": sidk_adj},
                               index=avsb)
@@ -297,14 +374,6 @@ def mkdf(avsb, p_vals, nymt=None, tj=False):
     return ret_df
 
 
-# convert p_values to H0 T/F
-def ap2h0(indf, alpha=0.05):
-    hodf = indf.copy()
-    hodf.columns = hodf.columns.str.replace('ap_', 'H0: ')
-    hodf = (hodf>alpha)
-    return hodf
-
-
 # recursive helper function for the Shaffer (static) test:
 # obtains the number of independent test hypotheses 
 # from the number of groups to be compared.
@@ -326,6 +395,80 @@ def _S(k):
                 result = result.union({sp.special.binom(j, 2) + s})
 ## ---------
         return list(result)
+
+
+# convert p_values to H0 T/F
+def filtr_ap2h0(indf, alpha=0.05):
+    hodf = indf.copy()
+# -- nemenyi_df -- #
+    hodf.drop(['lookup'], axis=1, inplace=True, errors='ignore')
+# --  -- #
+    hodf.columns = hodf.columns.str.replace('ap_', 'H0: ')
+    hodf = (hodf>alpha)
+    return hodf
+
+
+def filtr_psig(indf, alpha=0.05):
+    if 'p_noadj' not in indf.columns:
+        print("Error: Requires dataframe from ph_pvals() or cq_mph()")
+        ret_df = pd.DataFrame({"Required": 'p_noadj'},
+                              index=['Error'])
+        return ret_df    
+    
+    pvals_df = indf.loc[indf['p_noadj'] < alpha]
+# avsb
+    az = pvals_df.index.values.tolist()
+# pvals
+    psg = list(pvals_df['p_noadj'])
+
+# not sig - for analysis
+    rz = indf.index.values.tolist()
+    sx = [x for x in rz if x not in az]
+    print("Significant:",len(az),"   Not:",len(sx))    
+
+    shaf = True if 'ap_Shaf' in pvals_df.columns else False   
+
+    if 'ap_Nymi' in pvals_df.columns:
+       print("Exception: Nemenyi_test is only appropriate for all.vs.all")
+       print("           Returning standard tests")
+
+    return mkdf(az, psg, tj=shaf)
+
+
+def compare_avgranks(indf, avg_ranks, alpha=0.05):
+    if 'p_noadj' not in indf.columns:
+        print("Error: Requires dataframe from ph_pvals()")
+        ret_df = pd.DataFrame({"Required": 'p_noadj'},
+                              index=['Error'])
+        return ret_df    
+    
+    pz = indf.index.values.tolist()
+    cmp = []
+    for c in range(len(pz)):
+        bb=pz[c].split()
+        if avg_ranks[bb[0]] > avg_ranks[bb[2]]:
+            rnx=bb[2]+' '+str(avg_ranks[bb[2]])+' // '+str(avg_ranks[bb[0]])+' '+bb[0]
+        else:
+            rnx=bb[0]+' '+str(avg_ranks[bb[0]])+' // '+str(avg_ranks[bb[2]])+' '+bb[2]
+        cmp.append(rnx)
+        
+    print("Note: differences Down the Columns are NOT significant")
+    print("      only differences Across the Rows ARE significant")
+    return sorted(cmp)
+
+
+def compare_avgranks_lf(cmp):
+    print("sorted by last field")
+    return sorted(cmp, key=lambda t: t.split()[4])
+
+
+def sort_dict_byval(indd, rev=False):
+# sort by value (dict comprehension)
+    if rev:
+        retd = {x: v for v, x in sorted(((value, key) for (key, value) in indd.items()), reverse=True)}
+    else:
+        retd = {x: v for v, x in sorted((value, key) for (key, value) in indd.items())}
+    return retd
 
 
 # Cochran's Q omnibus test with McNemar post-hoc 
