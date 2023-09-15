@@ -141,7 +141,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 # compare_avgranks(indf, avg_ranks, alpha=0.05):
-# takes indf from mkdf plus avg_ranks from freidman test
+# For analysis: avg_ranks from the Freidman test
 #
 # Parameters
 # ----------
@@ -158,7 +158,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 # compare_avgranks_lf(cmp):
-# resort list from compare_avgranks()
+# For analysis: resort list from compare_avgranks()
 #
 # Parameters
 # ----------
@@ -178,7 +178,7 @@ from sklearn.preprocessing import LabelEncoder
 # indd : dict
 #    intended for string/scalar values ...
 # rev : Boolean, default = False
-#    true: higest to lowest
+#    True: highest to lowest
 #
 # Returns
 # -------
