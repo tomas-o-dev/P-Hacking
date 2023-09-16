@@ -35,16 +35,16 @@ The test functions return a Dataframe with adjusted p_values from various method
   predetermined value that is a function of alpha, the significance
   level, and k, the number of p-values.
   - Bonferroni-Dunn: `ap(i) = p(i)*k`
-  - Sidak: `          ap(i) = 1-(1-p(i))^k`
-  - Nemenyi: `        ap(i) = (p(i)*k*(k-1))/2`
+  - Sidak: `           ap(i) = 1-(1-p(i))^k`
+  - Nemenyi: `       ap(i) = (p(i)*k*(k-1))/2`   *(only valid for All.vs.All)*
 
 * In step-down methods p-values are examined in order, from smallest
   to largest. Once a p-value is found that is large according to a
   criterion based on alpha and the p-value's position in the list, 
   H0 for that p-value and all larger p-values is accepted.
   - Holm: `    ap(i) = p(i)*(k-i+1)`
-  - Finner: `  ap(i) = 1-(1-p(i))^(k/i)`
-  - Schaffer: `ap(i) = p(i)*t(i)`<br>
+  - Finner: `   ap(i) = 1-(1-p(i))^(k/i)`
+  - Schaffer: ` ap(i) = p(i)*t(i)`<br>
          where t(i) is the maximum number of hypotheses 
          which can be true given that any (i−1) hypotheses 
          are false; determined by a recursive function.
@@ -54,7 +54,7 @@ The test functions return a Dataframe with adjusted p_values from various method
   criterion based on alpha and the p-value's position in the list,
   H0 for that p-value and all smaller p-values is rejected.
   - Hochberg: `ap(i) = p(i)*(k-i+1)`
-  - Li: `      ap(i) = p(i)/(p(i)+1-p(k))`
+  - Li: `        ap(i) = p(i)/(p(i)+1-p(k))`
 
 
 #### Callable functions
