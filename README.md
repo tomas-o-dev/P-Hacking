@@ -6,7 +6,7 @@ For formal evaluation of the relative performance a set of classifiers, the null
 The standard method is to use an “omnibus” test to determine if the results from one or more of the models in the set differ significantly from the others (rejecting the null hypothesis), and then use a “post-hoc” test on each pair to find the significant differences.
 
 Regarding post-hoc testing, Schaffer (1995) says:
-"In general, in testing any single hypothesis, conclusions based on statistical evidence are uncertain. We typically specify an acceptable maximum probability of rejecting the null hypothesis when it is true, thus committing a Type I error, and base the conclusion on the value of a statistic meeting this specification, preferably one with high power. When many hypotheses are tested, and each test has a specified Type I error probability, the probability that at least some Type I errors are committed increases, often sharply, with the number of hypotheses. This may have serious consequences if the set of conclusions must be evaluated as a whole. Numerous methods have been proposed for dealing with this problem, but no one solution will be acceptable for all situations." 
+> "In general, in testing any single hypothesis, conclusions based on statistical evidence are uncertain. We typically specify an acceptable maximum probability of rejecting the null hypothesis when it is true, thus committing a Type I error, and base the conclusion on the value of a statistic meeting this specification, preferably one with high power. When many hypotheses are tested, and each test has a specified Type I error probability, the probability that at least some Type I errors are committed increases, often sharply, with the number of hypotheses. This may have serious consequences if the set of conclusions must be evaluated as a whole. Numerous methods have been proposed for dealing with this problem, but no one solution will be acceptable for all situations." 
 
 This library provides a convenient way to see the effect of the most common methods for proper multiple hypothesis testing, given a metric for the performance of each classifier (e.g., AUC, gmean, etc.) in a set. 
 The term "p-hacking" is typically defined as a mix of strategies targeted at ensuring significant test results. While some of these strategies are considered less ethical than others (see Stefan et.al. (2023) for a review), choosing a metric for comparison and an appropriate correction  method for multiple hypothesis testing is simply a necessary step.  
@@ -24,9 +24,9 @@ the Friedman ranking test is used as the omnibus test, with the Nemenyi test as 
 The test functions return a Dataframe with adjusted p_values from various methods. A brief summary of their calculation:
 
 > H0    : null hypothesis, difference between the two is not significant<br>
-> p     = p_value for each pair being compared, from the 
-      :         normal distribution except Nemenyi (t-dist)<br>
-      : unadjusted p_values are sorted such that p(0)<p(1)<br>
+> p     = p_value for each pair being compared, from the<br> 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; normal distribution except Nemenyi (t-dist)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unadjusted p_values are sorted such that p(0)<p(1)<br>
   k     = number of unadjusted p-values<br>
   p(i)  = value at position (i) in the sorted list<br>
   ap(i) = value p(i) adjusted for multiple tests<br>
@@ -34,17 +34,17 @@ The test functions return a Dataframe with adjusted p_values from various method
 * In one-step adjustment methods p-values are compared to a
   predetermined value that is a function of alpha, the significance
   level, and k, the number of p-values.
-  - Bonferroni-Dunn: `ap(i) = p(i)*k`
-  - Sidak: `           ap(i) = 1-(1-p(i))^k`
-  - Nemenyi: `       ap(i) = (p(i)*k*(k-1))/2`   *(only valid for All.vs.All)*
+  - Bonferroni-Dunn: ` ap(i) = p(i)*k `
+  - Sidak: `            ap(i) = 1-(1-p(i))^k `
+  - Nemenyi: `        ap(i) = (p(i)*k*(k-1))/2 `   *(only valid for All.vs.All)*
 
 * In step-down methods p-values are examined in order, from smallest
   to largest. Once a p-value is found that is large according to a
   criterion based on alpha and the p-value's position in the list, 
   H0 for that p-value and all larger p-values is accepted.
-  - Holm: `    ap(i) = p(i)*(k-i+1)`
-  - Finner: `   ap(i) = 1-(1-p(i))^(k/i)`
-  - Schaffer: ` ap(i) = p(i)*t(i)`<br>
+  - Holm: `     ap(i) = p(i)*(k-i+1) `
+  - Finner: `    ap(i) = 1-(1-p(i))^(k/i) `
+  - Schaffer: `  ap(i) = p(i)*t(i) `<br>
          where t(i) is the maximum number of hypotheses 
          which can be true given that any (i−1) hypotheses 
          are false; determined by a recursive function.
@@ -53,8 +53,8 @@ The test functions return a Dataframe with adjusted p_values from various method
   smallest. Once a p-value is found that is small according to a
   criterion based on alpha and the p-value's position in the list,
   H0 for that p-value and all smaller p-values is rejected.
-  - Hochberg: `ap(i) = p(i)*(k-i+1)`
-  - Li: `        ap(i) = p(i)/(p(i)+1-p(k))`
+  - Hochberg: ` ap(i) = p(i)*(k-i+1) `
+  - Li: `         ap(i) = p(i)/(p(i)+1-p(k)) `
 
 
 #### Callable functions
