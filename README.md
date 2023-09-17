@@ -146,4 +146,4 @@ The test functions return a Dataframe with adjusted p_values from various method
 * sklearn.preprocessing
 
 ### Examples
-Jupyter notebooks in the `Demo` folder
+Jupyter notebooks in the `Demo` folder (including a demonstration of why the Nemenyi test is only appropriate for All.vs.All)
