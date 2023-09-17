@@ -81,8 +81,8 @@ The test functions return a Dataframe with adjusted p_values from various method
 * `ph_pvals(ranks,control=None,nmyi=False,shaf=False)`<br> Post-Hoc p_values adjusted for multiple testing 
   - Parameters
     - `ranks` : dict, returned from Freidman test (rankdic)
-    - `control` : string, groupname for one-to-all (control group) comparisons, default is all-vs-all comparison
-    - `nmyi` : Boolean, Run the Nemenyi test<br>Note: nemenyi_test is not appropriate for one.vs.all
+    - `control` : string, groupname for one-to-all (control group) comparisons, default is all.vs.all comparison
+    - `nmyi` : Boolean, Run the Nemenyi test<br>Note: nemenyi_test is only appropriate for all.vs.all
     - `shaf` : Boolean, Run the Schaffer_static_test<br>Note: schaffer_static uses a recursive call; this causes internal python multithreading to go wildly oversubscribed when there are more than 18 classfiers to compare
   - Returns
     - pd.Dataframe with adjusted p_values from various methods<br>by default BDun, Sidak, Holm, Finner, Hochberg, Li; Nemenyi test returns Nemenyi, BDun, Sidak (all single-step); Schaffer test returns Schaffer, Holm, Finner (all step-down)
