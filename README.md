@@ -85,7 +85,7 @@ The test functions return a Dataframe with adjusted p_values from various method
     - `nmyi` : Boolean, Run the Nemenyi test<br>Note: nemenyi_test is only appropriate for all.vs.all
     - `shaf` : Boolean, Run the Schaffer_static_test<br>Note: schaffer_static uses a recursive call; this causes internal python multithreading to go wildly oversubscribed when there are more than 18 classfiers to compare
   - Returns
-    - pd.Dataframe with adjusted p_values from various methods<br>by default BDun, Sidak, Holm, Finner, Hochberg, Li; Nemenyi test returns Nemenyi, BDun, Sidak (all single-step); Schaffer test returns Schaffer, Holm, Finner (all step-down)
+    - pd.Dataframe with adjusted p_values from various methods<br>by default BDun, Sidak, Holm, Finner, Hochberg, Li<br>Nemenyi test returns Nemenyi, BDun, Sidak (all single-step)<br>Schaffer test returns Schaffer, Holm, Finner (all step-down)
 
 * `cq_mph(y_test,clf_preds,cq=True,control=None,alpha=0.05)`<br>Cochrans_Q omnibus test and McNemar post-hoc test - requires mlxtend.evaluate
   - Parameters
